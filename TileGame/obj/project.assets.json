@@ -108,11 +108,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "Z:\\TileGame\\TileGame\\TileGame.csproj",
+      "projectUniqueName": "V:\\TileGame\\TileGame\\TileGame.csproj",
       "projectName": "TileGame",
-      "projectPath": "Z:\\TileGame\\TileGame\\TileGame.csproj",
+      "projectPath": "V:\\TileGame\\TileGame\\TileGame.csproj",
       "packagesPath": "C:\\Users\\S22152649\\.nuget\\packages\\",
-      "outputPath": "Z:\\TileGame\\TileGame\\obj\\",
+      "outputPath": "V:\\TileGame\\TileGame\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
