@@ -1,0 +1,11 @@
+cool shader tutorial
+https://learn-monogame.github.io/tutorial/infinite-background-shader/
+
+Docs
+https://docs.monogame.net/api/Microsoft.Xna.Framework.html
+
+repo
+https://github.com/Theo-Bradley/TileGame
+
+tutorials
+http://rbwhitaker.wikidot.com/xna-tutorials/

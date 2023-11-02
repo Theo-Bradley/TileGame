@@ -28,6 +28,7 @@ namespace TileGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
+            float[] cube = [];
         }
 
         protected override void Update(GameTime gameTime)
