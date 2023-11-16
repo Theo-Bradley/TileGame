@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34024.191
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33920.266
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TileGame", "TileGame\TileGame.csproj", "{52186D1C-6FF2-40F0-A66E-06C475B21F9D}"
 EndProject

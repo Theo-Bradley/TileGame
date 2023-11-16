@@ -13,3 +13,8 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin cube.fbx
+/importer:
+/processor:
+/build:cube.fbx
+
