@@ -4,127 +4,208 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-//using System.Drawing;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
+
 
 namespace TileGame
 {
     public class _constants
     {
-        public const int screenWidth = 1280;
-        public const int screenHeight = 720;
+        public const int screenWidth = 1000;
+        public const int screenHeight = 1000;
         public const float PI = 3.14159f;
-    }
-
-    public class Camera
-    {
-        public Vector3 position; //position
-        private Vector3 pry; //pitch roll yaw
-
-        public void Pitch(float amount)
-        {
-            pry.X += amount;
-        }
-
-        public void Roll(float amount)
-        {
-            pry.Y += amount;
-        }
-
-        public void Yaw(float amount)
-        {
-            pry.Z += amount;
-        }
-
-        public void SetPosition(Vector3 newPos)
-        {
-            position = newPos;
-        }
-
-        public Vector3 GetPosition()
-        {
-            return position;
-        }
-
-        public void SetPitch(float pitch)
-        {
-            pry.X = pitch;
-        }
-
-        public void SetRoll(float roll)
-        {
-            pry.Y = roll;
-        }
-
-        public void SetYaw(float yaw)
-        {
-            pry.Z = yaw;
-        }
-
-        public Matrix GetView()
-        {
-            Vector4 forward = new Vector4(0f, 0f, -1f, 1f);
-            Matrix sca = Matrix.CreateScale(1f);
-            Matrix pos = Matrix.CreateTranslation(position.X, position.Y, position.Z);
-            forward = Vector4.Transform(forward, sca * Matrix.CreateFromYawPitchRoll(pry.Z, pry.X, pry.Y) * pos);
-            return Matrix.CreateLookAt(position, new Vector3(forward.X, forward.Y, forward.Z), new Vector3(0f, 1f, 0f));
-        }
-
-        public Matrix GetWorld()
-        {
-            Matrix sca = Matrix.CreateScale(1f);
-            Matrix rot = Matrix.CreateFromYawPitchRoll(pry.Z, pry.X, pry.Y);
-            Matrix pos = Matrix.CreateTranslation(position);
-            return sca * rot * pos;
-        }
     }
 
     public class GameObject
     {
-        public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 scale;
+        protected Vector2 position;
+        protected Vector2 scale;
+        protected Quaternion rotation;
+
+        public GameObject()
+        {
+            position = new Vector2(0f);
+            scale = new Vector2(1f);
+            rotation = Quaternion.Identity;
+        }
+
+        public void Scale(Vector2 amount)
+        { 
+            scale += amount;
+        }
+
+        public void Rotate(float angle)
+        {
+            //implement
+        }
+
+        public void Move(Vector2 amount)
+        { 
+            position += amount;    
+        }
+
+        public void SetPosition(Vector2 _position)
+        {
+            position = _position;
+        }
+
+        public void SetRotation(Quaternion rotation)
+        {
+            // implement
+        }
+
+        public void SetScale(Vector2 _scale)
+        {
+            scale = _scale;
+        }
     }
 
     public class Piece : GameObject
     {
-        private Model modelRef;
-        public Piece(Model loadedPieceModel)
+        protected bool empty;
+        protected bool selected = false;
+        private Texture2D pieceTex;
+        private Rectangle renderRect;
+        public Vector2 oldMousePos;
+
+        public Piece(Texture2D loadedPieceTex, bool isEmpty) : base()
         {
-            modelRef = loadedPieceModel;
-            position = new Vector3(0f, 0f, 0f);
-            rotation = Quaternion.Identity;
-            scale = new Vector3(1f, 1f, 1f);
+            pieceTex = loadedPieceTex;
+            empty = isEmpty;
+            UpdateRect();
+            oldMousePos = new Vector2(50, 50);
         }
 
-        public void Draw(Matrix vMat, Matrix pMat)
+        public void Draw(ref SpriteBatch batch)
         {
-            foreach (ModelMesh mesh in modelRef.Meshes)
+            if (!empty)
             {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    Quaternion rotQuat = new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W); //convert glmsharp quaternion to xna quaternion
-                    Matrix wMat = Matrix.CreateScale(scale.X, scale.Y, scale.Z) * Matrix.CreateFromQuaternion(rotQuat) * Matrix.CreateTranslation(position.X, position.Y, position.Z);
-                    effect.World = wMat;
-                    effect.View = vMat;
-                    effect.Projection = pMat;
-                }
-
-                mesh.Draw();
+                batch.Draw(pieceTex, renderRect, Color.White);
             }
         }
+
+        public bool Click(Vector2 clickPos)
+        {
+            bool nowSelected = renderRect.Contains(clickPos);
+            if (nowSelected && !selected)
+                //Scale(new Vector2(0.05f), true);
+            if (!nowSelected && selected)
+                //Scale(new Vector2(-0.05f), true);
+            selected = nowSelected;
+            return nowSelected;
+        }
+
+        public void UpdateRect()
+        {
+            renderRect = new Rectangle((int)Math.Round(position.X), (int)Math.Round(position.Y),
+                (int)Math.Round(pieceTex.Width * scale.X), (int)Math.Round(pieceTex.Height * scale.Y));
+        }
+
+        public void DragPosition(Vector2 mousePosition)
+        {
+            Vector2 offset = mousePosition - oldMousePos;
+            Move(offset);
+            oldMousePos = mousePosition;
+        }
+
+        public void DrawLineBetween(
+        SpriteBatch spriteBatch,
+        Vector2 startPos,
+        Vector2 endPos,
+        int thickness,
+        Color color)
+        {
+            // Create a texture as wide as the distance between two points and as high as
+            // the desired thickness of the line.
+            var distance = (int)Vector2.Distance(startPos, endPos);
+            var texture = new Texture2D(spriteBatch.GraphicsDevice, distance, thickness);
+
+            // Fill texture with given color.
+            var data = new Color[distance * thickness];
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = color;
+            }
+            texture.SetData(data);
+
+            // Rotate about the beginning middle of the line.
+            var rotation = (float)Math.Atan2(endPos.Y - startPos.Y, endPos.X - startPos.X);
+            var origin = new Vector2(0, thickness / 2);
+
+            spriteBatch.Draw(
+                texture,
+                startPos,
+                null,
+                Color.White,
+                rotation,
+                origin,
+                1.0f,
+                SpriteEffects.None,
+                1.0f);
+        }
+
+        #region transformations
+        public void Scale(Vector2 amount, bool aboutCenter)
+        { 
+            Vector2 originalScale = scale;
+            base.Scale(amount);
+            if (aboutCenter)
+            {
+                position -= new Vector2(pieceTex.Width * (scale.X - originalScale.X)/2, pieceTex.Width * (scale.Y - originalScale.Y)/2);
+            }
+            UpdateRect();
+        }
+
+        new public void Rotate(float angle)
+        {
+            //implement
+            UpdateRect();
+        }
+
+        new public void Move(Vector2 amount)
+        { 
+            base.Move(amount);
+            UpdateRect();
+        }
+
+        new public void SetPosition(Vector2 _position)
+        {
+            base.SetPosition(_position);
+            UpdateRect();
+        }
+
+        new public void SetRotation(Quaternion rotation)
+        {
+            // implement
+            UpdateRect();
+        }
+
+        new public void SetScale(Vector2 _scale)
+        {
+
+            base.SetScale(_scale);
+            UpdateRect();
+        }
+        #endregion transformations
     }
 
     public class Board
     {
-        private Piece[,] pieces;
-        private int size;
+        public Piece[,] pieces;
+        protected int size;
+        public int count = 0;
+        
+        private int spacing = 25;
 
-        public Board(int boardSize, Model loadedPieceModel)
+        public Board(int boardSize, Texture2D loadedPieceTex)
         {
             size = boardSize;
             pieces = new Piece[size, size];
@@ -132,44 +213,42 @@ namespace TileGame
             {
                 for (int y = 0; y < size; y++)
                 {
-                    pieces[x, y] = new Piece(loadedPieceModel);
-                    pieces[x, y].position = new Vector3(x * 1.5f - 1.5f, y * 1.5f, 0f);
-                    pieces[x, y].scale = new Vector3(0.25f);
+                    pieces[x, y] = new Piece(loadedPieceTex, x == size - 1 && y == size - 1);
+                    pieces[x, y].SetPosition(new Vector2((float) x * (loadedPieceTex.Width + spacing), (float) y * (loadedPieceTex.Width + spacing)));
                 }
             }
         }
 
-        public void Draw(Matrix vMat, Matrix pMat)
+        public void Draw(ref SpriteBatch batch)
         {
-            foreach (Piece piece in pieces)
+            batch.Begin();
+            for (int x = 0; x < size; x++)
             {
-                piece.Draw(vMat, pMat);
+                for (int y = 0; y < size; y++)
+                {
+                    pieces[x, y].Draw(ref batch);
+                }
             }
+            batch.End();
         }
 
-        public void Click(Vector2 mousePos, Camera cam, GameWindow window)
+        public bool Click(Vector2 clickPos, ref int indexX, ref int indexY)
         {
-            Matrix pMat = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(56f), (float)_constants.screenWidth / (float)_constants.screenHeight, 0.1f, 100f);
-            Vector2 NDC = mousePos / new Vector2(_constants.screenWidth, _constants.screenHeight); //transform to range 0-1
-            NDC *= 2; //.. 0-2
-            NDC -= new Vector2(1f); //.. -1-1
-            Vector4 screenPos = new Vector4(NDC.X, -NDC.Y, 1f, 1f);
-            Matrix inverse = pMat * cam.GetView();
-            inverse = Matrix.Invert(inverse);
-            Vector4 worldPos = Vector4.Transform(screenPos, inverse);
-            worldPos /= worldPos.W;
-            window.Title = worldPos.X.ToString();
-            foreach (Piece piece in pieces)
+            bool result = false;
+            for (int x = 0; x < size; x++)
             {
-                if (worldPos.X >= piece.position.X)
-                {
-                    piece.scale = new Vector3(0.3f);
-                }
-                else
-                {
-                    piece.scale = new Vector3(0.25f);
+                for (int y = 0; y < size; y++)
+                { 
+                    if (pieces[x, y].Click(clickPos))
+                    {
+                        indexX = x;
+                        indexY = y;
+                        result = true;
+                    }
                 }
             }
+
+            return result;
         }
     }
 
@@ -177,15 +256,13 @@ namespace TileGame
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-
-        private Camera camera;
-        private float deltaTime = 0;
-        private List<Model> renderObjects = new List<Model>();
+        float deltaTime = 0;
         Vector2 mousePos;
-        private Matrix projection;
 
-        private Model cube;
+        private Texture2D pieceTex;
         private Board board;
+        private int indexX = 0, indexY = 0;
+        private int _indexX = 0, _indexY = 0;
 
         public Game1()
         {
@@ -204,13 +281,7 @@ namespace TileGame
             _graphics.PreferredBackBufferHeight = _constants.screenHeight;
             _graphics.ApplyChanges();
 
-            camera = new Camera();
-            //camera.SetYaw(-constants.PI);
-            camera.SetPosition(new Vector3(0, 1, 10));
-
-            Matrix projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(56f), (float)_constants.screenWidth / (float)_constants.screenHeight, 0.1f, 100f);
-
-            board = new Board(3, cube);
+            board = new Board(3, pieceTex);
         }
 
         protected override void LoadContent()
@@ -218,9 +289,8 @@ namespace TileGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
+            pieceTex = Content.Load<Texture2D>("blue");
 
-            cube = Content.Load<Model>("cube");
-            renderObjects.Add(cube);
         }
 
         protected override void Update(GameTime gameTime)
@@ -234,26 +304,15 @@ namespace TileGame
             mousePos.X = mState.Position.X; //update mouse position
             mousePos.Y = mState.Position.Y; //..
 
-            if (Keyboard.GetState().IsKeyDown(Keys.A))
-            {
-                camera.Yaw(-0.05f * deltaTime);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.D))
-            {
-                camera.Yaw(0.05f * deltaTime);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
-            {
-                camera.Pitch(-0.05f * deltaTime);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
-            {
-                camera.Pitch(0.05f * deltaTime);
-            }
-
             if (mState.LeftButton == ButtonState.Pressed)
             {
-                board.Click(mousePos, camera, Window);
+                board.Click(mousePos, ref indexX, ref indexY).ToString();
+                Window.Title = indexX.ToString() + indexY.ToString();
+                if (indexX != _indexX && indexY != _indexY)
+                    board.pieces[indexX, indexY].oldMousePos = mousePos;
+                board.pieces[indexX, indexY].DragPosition(mousePos);
+                _indexX = indexX;
+                _indexY = indexY;
             }
 
             base.Update(gameTime);
@@ -265,27 +324,13 @@ namespace TileGame
             GraphicsDevice.Clear(Color.CornflowerBlue); //clear with blue colour
 
             // TODO: Add your drawing code here
-            Matrix world = Matrix.CreateTranslation(0f, 0f, 0f);
-            Matrix view = camera.GetView();
-            projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(56f), (float)_constants.screenWidth / (float)_constants.screenHeight, 0.1f, 100f);
+            /*_spriteBatch.Begin();
 
-            foreach (Model renderObject in renderObjects)
-            //example rendering code
-            {
-                foreach (ModelMesh mesh in renderObject.Meshes) //loop over each mesh in model
-                {
-                    foreach (BasicEffect effect in mesh.Effects) //loop over each shader on mesh
-                    {
-                        effect.World = world; //pass in matrices
-                        effect.View = view; //..
-                        effect.Projection = projection; //..
-                    }
+            _spriteBatch.Draw(pieceTex, new Vector2(400, 400), Color.White);
 
-                    //mesh.Draw(); //draw to screen
-                }
-            }
+            _spriteBatch.End();*/
 
-            board.Draw(view, projection);
+            board.Draw(ref _spriteBatch);
 
             base.Draw(gameTime);
         }
