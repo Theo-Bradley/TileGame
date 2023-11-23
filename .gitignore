@@ -1,4 +1,4 @@
 .vs/
 *.key
-bin/
-obj/
+TileGame/bin/
+TileGame/obj/
