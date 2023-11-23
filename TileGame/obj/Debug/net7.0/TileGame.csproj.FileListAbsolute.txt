@@ -1,5 +1,4 @@
 G:\Uni\Sem1\TileGame\TileGame\bin\Debug\net7.0\Content\cube.fbx
-G:\Uni\Sem1\TileGame\TileGame\bin\Debug\net7.0\Content\cube.xnb
 G:\Uni\Sem1\TileGame\TileGame\bin\Debug\net7.0\TileGame.exe
 G:\Uni\Sem1\TileGame\TileGame\bin\Debug\net7.0\TileGame.deps.json
 G:\Uni\Sem1\TileGame\TileGame\bin\Debug\net7.0\TileGame.runtimeconfig.json
@@ -52,3 +51,4 @@ V:\TileGame\TileGame\obj\Debug\net7.0\TileGame.csproj.CopyComplete
 V:\TileGame\TileGame\obj\Debug\net7.0\TileGame.genruntimeconfig.cache
 V:\TileGame\TileGame\obj\Debug\net7.0\ref\TileGame.dll
 V:\TileGame\TileGame\bin\Debug\net7.0\Content\blue.xnb
+G:\Uni\Sem1\TileGame\TileGame\bin\Debug\net7.0\Content\blue.xnb
