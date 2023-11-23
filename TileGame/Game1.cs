@@ -75,12 +75,14 @@ namespace TileGame
         private Texture2D pieceTex;
         private Rectangle renderRect;
         private Vector2 oldPosition;
+        private Vector2 mouseOffset;
 
         public Piece(Texture2D loadedPieceTex, bool isEmpty) : base()
         {
             pieceTex = loadedPieceTex;
             empty = isEmpty;
             UpdateRect();
+            oldPosition = position;
         }
 
         public void Draw(ref SpriteBatch batch)
@@ -95,7 +97,7 @@ namespace TileGame
         {
             bool nowSelected = renderRect.Contains(clickPos);
             if (nowSelected && !selected)
-                Selected();
+                Selected(clickPos);
             if (!nowSelected && selected)
                 DeSelected();
             selected = nowSelected;
@@ -114,20 +116,22 @@ namespace TileGame
             Vector2 deltaY = new Vector2(0f, mousePosition.Y - oldPosition.Y); //change in the y axis
 
             if (deltaX.Length() > deltaY.Length()) //if deltaX is greater than deltaY
-                SetPosition(new Vector2(mousePosition.X - renderRect.Width/2, oldPosition.Y)); //update x position to mouse pos minus height (centered)
+                SetPosition(new Vector2(mousePosition.X + mouseOffset.X, oldPosition.Y - renderRect.Height/2)); //update x position to mouse pos plus offset
             else
-                SetPosition(new Vector2(oldPosition.X, mousePosition.Y - renderRect.Height/2)); //.. y .. height ..
+                SetPosition(new Vector2(oldPosition.X - renderRect.Width/2, mousePosition.Y + mouseOffset.Y)); //.. y ..
         }
 
-        public void Selected()
+        public void Selected(Vector2 mousePos)
         {
-            Scale(new Vector2(0.05f), true);
-            oldPosition = position;
+            //Scale(new Vector2(0.05f), true);
+            oldPosition = position + new Vector2(renderRect.Width/2, renderRect.Height/2);
+            mouseOffset = position - mousePos;
         }
 
         public void DeSelected()
         {
-            Scale(new Vector2(-0.05f), true);
+            //Scale(new Vector2(-0.05f), true);
+            SetPosition(oldPosition - new Vector2(renderRect.Width/2, renderRect.Height/2));
         }
 
         public void DrawLineBetween(
@@ -330,8 +334,8 @@ namespace TileGame
             {
                 if (!wasDown) //if wasn't clicking on last frame
                     board.Click(mousePos, ref indexX, ref indexY); //select piece
-                if (indexX >= 0 && indexY >= 0)
-                    board.pieces[indexX, indexY].DragPosition(mousePos); //update positions
+                if (indexX >= 0 && indexY >= 0) //if clicked on a piece
+                    board.pieces[indexX, indexY].DragPosition(mousePos); //update position
                 Window.Title = "x: " + indexX.ToString() + " y: " + indexY.ToString();
                 wasDown = true; //indicate the mouse was clicked on next loop
             }
@@ -339,7 +343,8 @@ namespace TileGame
             if (mState.LeftButton == ButtonState.Released)
             {
                 if (wasDown) //if was clicking on last frame
-                    board.Click(mousePos, ref bin, ref bin); //if clicking on a piece
+                    if (indexX >= 0 && indexY >= 0)
+                        board.pieces[indexX, indexY].DeSelected();
                 wasDown = false;
             }
 
