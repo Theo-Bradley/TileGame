@@ -1,2 +1,2 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"V:/TileGame/TileGame/Content/blue.png","V:/TileGame/TileGame/Content/bin/DesktopGL/Content/blue.xnb","TextureProcessor","Texture2DContent",32229,262229,0.4484407
+"G:/Uni/Sem1/TileGame/TileGame/Content/blue.png","G:/Uni/Sem1/TileGame/TileGame/Content/bin/DesktopGL/Content/blue.xnb","TextureProcessor","Texture2DContent",32229,262229,0.2028283

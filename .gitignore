@@ -1,4 +1,4 @@
 .vs/
 *.key
 TileGame/bin/
-TileGame/obj/
+TileGame/obj/Debug/
