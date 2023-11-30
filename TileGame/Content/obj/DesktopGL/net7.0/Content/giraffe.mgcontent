@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>V:/TileGame/TileGame/Content/blue.png</SourceFile>
-  <SourceTime>2023-11-16T14:05:18.2011669+00:00</SourceTime>
-  <DestFile>V:/TileGame/TileGame/Content/bin/DesktopGL/Content/blue.xnb</DestFile>
-  <DestTime>2023-11-30T10:54:14.8033368+00:00</DestTime>
+  <SourceFile>V:/TileGame/TileGame/Content/giraffe.png</SourceFile>
+  <SourceTime>2023-11-23T11:56:20.1928781+00:00</SourceTime>
+  <DestFile>V:/TileGame/TileGame/Content/bin/DesktopGL/Content/giraffe.xnb</DestFile>
+  <DestTime>2023-11-30T11:39:23.4469313+00:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2022-07-26T12:44:56+01:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

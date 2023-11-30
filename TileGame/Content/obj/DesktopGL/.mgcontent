@@ -5,8 +5,10 @@
   <Config />
   <SourceFiles>
     <File>V:/TileGame/TileGame/Content/blue.png</File>
+    <File>V:/TileGame/TileGame/Content/giraffe.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>

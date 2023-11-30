@@ -66,6 +66,11 @@ namespace TileGame
         {
             scale = _scale;
         }
+
+        public Vector2 GetPosition()
+        {
+            return position;
+        }
     }
 
     public class Piece : GameObject
@@ -78,17 +83,19 @@ namespace TileGame
             up,
             down,
         };
-        protected bool empty;
-        protected bool selected = false;
+        public bool empty;
+        public bool selected = false;
         private Texture2D pieceTex;
         private Rectangle renderRect;
+        private Rectangle textureRect;
         private Vector2 oldPosition;
         private Vector2 mouseOffset;
         private Direction swapDirection;
 
-        public Piece(Texture2D loadedPieceTex, bool isEmpty) : base()
+        public Piece(Texture2D loadedPieceTex, bool isEmpty, Rectangle texRect) : base()
         {
             pieceTex = loadedPieceTex;
+            textureRect = texRect;
             empty = isEmpty;
             UpdateRect();
             oldPosition = position;
@@ -98,7 +105,7 @@ namespace TileGame
         {
             if (!empty)
             {
-                batch.Draw(pieceTex, renderRect, Color.White);
+                batch.Draw(pieceTex, renderRect, textureRect, Color.White);
             }
         }
 
@@ -115,8 +122,13 @@ namespace TileGame
 
         public void UpdateRect()
         {
-            renderRect = new Rectangle((int)Math.Round(position.X), (int)Math.Round(position.Y),
-                (int)Math.Round(pieceTex.Width * scale.X), (int)Math.Round(pieceTex.Height * scale.Y));
+            renderRect = new Rectangle((int) Math.Round(position.X), (int)Math.Round(position.Y),
+                (int) Math.Round(textureRect.Width * scale.X), (int) Math.Round(textureRect.Height * scale.Y));
+        }
+
+        public Rectangle GetRect()
+        {
+            return renderRect;
         }
 
         public void DragPosition(Vector2 mousePosition)
@@ -132,79 +144,50 @@ namespace TileGame
 
         public void Selected(Vector2 mousePos)
         {
-            //Scale(new Vector2(0.05f), true);
+            selected = true;
             oldPosition = position + new Vector2(renderRect.Width/2, renderRect.Height/2);
             mouseOffset = position - mousePos;
         }
 
         public Direction DeSelected()
         {
-            //Scale(new Vector2(-0.05f), true);
-            Vector2 deltaDirX = new Vector2(position.X + renderRect.Width/2 - oldPosition.X, 0);
-            Vector2 deltaDirY = new Vector2(0, position.Y + renderRect.Height/2 - oldPosition.Y);
-            SetPosition(oldPosition - new Vector2(renderRect.Width/2, renderRect.Height/2));
+            if (selected)
+            {
+                selected = false;
+                Vector2 deltaDirX = new Vector2(position.X + renderRect.Width/2 - oldPosition.X, 0);
+                Vector2 deltaDirY = new Vector2(0, position.Y + renderRect.Height/2 - oldPosition.Y);
+                SetPosition(oldPosition - new Vector2(renderRect.Width/2, renderRect.Height/2));
+                if (deltaDirX.Length() == 0 && deltaDirY.Length() == 0)
+                {
+                    return Direction.none;
+                }
+                else
+                {
+                    if (deltaDirX.Length() >= deltaDirY.Length() && deltaDirX.X > 0)
+                    {
+                        return Direction.right;
+                    }
+                    if (deltaDirX.Length() >= deltaDirY.Length() && deltaDirX.X < 0)
+                    { 
+                        return Direction.left;    
+                    }
+                    if (deltaDirY.Length() >= deltaDirX.Length() && deltaDirY.Y > 0)
+                    {
+                        return Direction.down;
+                    }
+                    if (deltaDirY.Length() >= deltaDirX.Length() && deltaDirY.Y < 0)
+                    {
+                        return Direction.up;
+                    }
+                }
+            }
 
-            if (deltaDirX.Length() == 0 && deltaDirY.Length() == 0)
-            {
-                return Direction.none;
-            }
-            else
-            {
-                if (deltaDirX.Length() >= deltaDirY.Length() && deltaDirX.X > 0)
-                {
-                    return Direction.right;
-                }
-                if (deltaDirX.Length() >= deltaDirY.Length() && deltaDirX.X < 0)
-                { 
-                    return Direction.left;    
-                }
-                if (deltaDirY.Length() >= deltaDirX.Length() && deltaDirY.Y > 0)
-                { 
-                    return Direction.down;
-                }
-                if (deltaDirY.Length() >= deltaDirX.Length() && deltaDirY.Y < 0)
-                {
-                    return Direction.up;
-                }
-            }
             return Direction.none; //unnecessary as the code should never reach here, supresses compiler error, however in case of bug check here first
-
         }
 
-        public void DrawLineBetween(
-        SpriteBatch spriteBatch,
-        Vector2 startPos,
-        Vector2 endPos,
-        int thickness,
-        Color color)
+        public void SetOldPosition(Vector2 position)
         {
-            // Create a texture as wide as the distance between two points and as high as
-            // the desired thickness of the line.
-            var distance = (int)Vector2.Distance(startPos, endPos);
-            var texture = new Texture2D(spriteBatch.GraphicsDevice, distance, thickness);
-
-            // Fill texture with given color.
-            var data = new Color[distance * thickness];
-            for (int i = 0; i < data.Length; i++)
-            {
-                data[i] = color;
-            }
-            texture.SetData(data);
-
-            // Rotate about the beginning middle of the line.
-            var rotation = (float)Math.Atan2(endPos.Y - startPos.Y, endPos.X - startPos.X);
-            var origin = new Vector2(0, thickness / 2);
-
-            spriteBatch.Draw(
-                texture,
-                startPos,
-                null,
-                Color.White,
-                rotation,
-                origin,
-                1.0f,
-                SpriteEffects.None,
-                1.0f);
+            oldPosition = position;
         }
 
         #region transformations
@@ -214,7 +197,7 @@ namespace TileGame
             base.Scale(amount);
             if (aboutCenter)
             {
-                position -= new Vector2(pieceTex.Width * (scale.X - originalScale.X)/2, pieceTex.Width * (scale.Y - originalScale.Y)/2);
+                position -= new Vector2(textureRect.Width * (scale.X - originalScale.X)/2, textureRect.Width * (scale.Y - originalScale.Y)/2);
             }
             UpdateRect();
         }
@@ -263,19 +246,25 @@ namespace TileGame
         public Piece[,] pieces;
         protected int size;
         public int count = 0;
+        public Texture2D loadedAtlas;
         
         private int spacing = 25;
 
-        public Board(int boardSize, Texture2D loadedPieceTex)
+        public Board(int boardSize, Texture2D loadedAtlasTex)
         {
             size = boardSize;
+            loadedAtlas = loadedAtlasTex;
             pieces = new Piece[size, size];
+            Vector2 scalingFactor = new Vector2((float) loadedAtlasTex.Width / _constants.screenWidth);
             for (int x = 0; x < size; x++)
             {
                 for (int y = 0; y < size; y++)
                 {
-                    pieces[x, y] = new Piece(loadedPieceTex, x == size - 1 && y == size - 1);
-                    pieces[x, y].SetPosition(new Vector2((float) x * (loadedPieceTex.Width + spacing), (float) y * (loadedPieceTex.Width + spacing)));
+                    pieces[x, y] = new Piece(loadedAtlas, x == size - 1 && y == size - 1, new Rectangle((int)Math.Round((float)x * loadedAtlas.Width/size),
+                        (int)Math.Round((float)y * loadedAtlas.Height/size),
+                        (int)Math.Round((float)loadedAtlas.Width/size),
+                        (int)Math.Round((float)loadedAtlas.Height/size)));
+                    pieces[x, y].SetPosition(new Vector2((float) x * loadedAtlasTex.Width/size, (float) y * loadedAtlasTex.Height/size));
                 }
             }
         }
@@ -316,7 +305,65 @@ namespace TileGame
 
         public void Swap(int indexX, int indexY, Piece.Direction direction)
         {
-
+            switch (direction)
+            {
+                case Piece.Direction.left:
+                    if (indexX > 0)
+                    {
+                        if (pieces[indexX - 1, indexY].empty)  
+                        {
+                            ref Piece selected = ref pieces[indexX, indexY];
+                            selected.Move(new Vector2(-selected.GetRect().Width - spacing, 0));
+                            selected.SetOldPosition(selected.GetPosition());
+                            Piece temp = pieces[indexX - 1, indexY];
+                            pieces[indexX - 1, indexY] = pieces[indexX, indexY];
+                            pieces[indexX, indexY] = temp;
+                        }
+                    }
+                    break;
+                case Piece.Direction.right:
+                    if (indexX < size - 1)
+                    {
+                        if (pieces[indexX + 1, indexY].empty)  
+                        {
+                            ref Piece selected = ref pieces[indexX, indexY];
+                            selected.Move(new Vector2(selected.GetRect().Width + spacing, 0));
+                            selected.SetOldPosition(selected.GetPosition());
+                            Piece temp = pieces[indexX + 1, indexY];
+                            pieces[indexX + 1, indexY] = pieces[indexX, indexY];
+                            pieces[indexX, indexY] = temp;
+                        }
+                    }
+                    break;
+                case Piece.Direction.up:
+                    if (indexY > 0)
+                    {
+                        if (pieces[indexX, indexY - 1].empty)
+                        {
+                            ref Piece selected = ref pieces[indexX, indexY];
+                            selected.Move(new Vector2(0, -selected.GetRect().Height - spacing));
+                            selected.SetOldPosition(selected.GetPosition());
+                            Piece temp = pieces[indexX, indexY - 1];
+                            pieces[indexX, indexY - 1] = pieces[indexX, indexY];
+                            pieces[indexX, indexY] = temp;
+                        }
+                    }
+                    break;
+                case Piece.Direction.down:
+                    if (indexY < size - 1)
+                    {
+                        if (pieces[indexX, indexY + 1].empty)
+                        {
+                            ref Piece selected = ref pieces[indexX, indexY];
+                            selected.Move(new Vector2(0, selected.GetRect().Height + spacing));
+                            selected.SetOldPosition(selected.GetPosition());
+                            Piece temp = pieces[indexX, indexY + 1];
+                            pieces[indexX, indexY + 1] = pieces[indexX, indexY];
+                            pieces[indexX, indexY] = temp;
+                        }
+                    }
+                    break;
+            }
         }
     }
 
@@ -328,6 +375,7 @@ namespace TileGame
         Vector2 mousePos;
 
         private Texture2D pieceTex;
+        private Texture2D giraffeAtlas;
         private Board board;
         private int indexX = 0, indexY = 0;
         private bool wasDown = false;
@@ -350,7 +398,7 @@ namespace TileGame
             _graphics.PreferredBackBufferHeight = _constants.screenHeight;
             _graphics.ApplyChanges();
 
-            board = new Board(3, pieceTex);
+            board = new Board(3, giraffeAtlas);
         }
 
         protected override void LoadContent()
@@ -359,6 +407,8 @@ namespace TileGame
 
             // TODO: use this.Content to load your game content here
             pieceTex = Content.Load<Texture2D>("blue");
+            giraffeAtlas = Content.Load<Texture2D>("giraffe");
+
         }
 
         protected override void Update(GameTime gameTime)

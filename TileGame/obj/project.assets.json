@@ -102,24 +102,32 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\fab\\.nuget\\packages\\": {}
+    "C:\\Users\\S22152649\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "G:\\Uni\\Sem1\\TileGame\\TileGame\\TileGame.csproj",
+      "projectUniqueName": "V:\\TileGame\\TileGame\\TileGame.csproj",
       "projectName": "TileGame",
-      "projectPath": "G:\\Uni\\Sem1\\TileGame\\TileGame\\TileGame.csproj",
-      "packagesPath": "C:\\Users\\fab\\.nuget\\packages\\",
-      "outputPath": "G:\\Uni\\Sem1\\TileGame\\TileGame\\obj\\",
+      "projectPath": "V:\\TileGame\\TileGame\\TileGame.csproj",
+      "packagesPath": "C:\\Users\\S22152649\\.nuget\\packages\\",
+      "outputPath": "V:\\TileGame\\TileGame\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\fab\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\S22152649\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "net7.0"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -163,7 +171,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.400\\RuntimeIdentifierGraph.json"
       }
     }
   }
