@@ -70,12 +70,21 @@ namespace TileGame
 
     public class Piece : GameObject
     {
+        public enum Direction
+        {
+            none,
+            left,
+            right,
+            up,
+            down,
+        };
         protected bool empty;
         protected bool selected = false;
         private Texture2D pieceTex;
         private Rectangle renderRect;
         private Vector2 oldPosition;
         private Vector2 mouseOffset;
+        private Direction swapDirection;
 
         public Piece(Texture2D loadedPieceTex, bool isEmpty) : base()
         {
@@ -128,10 +137,38 @@ namespace TileGame
             mouseOffset = position - mousePos;
         }
 
-        public void DeSelected()
+        public Direction DeSelected()
         {
             //Scale(new Vector2(-0.05f), true);
+            Vector2 deltaDirX = new Vector2(position.X + renderRect.Width/2 - oldPosition.X, 0);
+            Vector2 deltaDirY = new Vector2(0, position.Y + renderRect.Height/2 - oldPosition.Y);
             SetPosition(oldPosition - new Vector2(renderRect.Width/2, renderRect.Height/2));
+
+            if (deltaDirX.Length() == 0 && deltaDirY.Length() == 0)
+            {
+                return Direction.none;
+            }
+            else
+            {
+                if (deltaDirX.Length() >= deltaDirY.Length() && deltaDirX.X > 0)
+                {
+                    return Direction.right;
+                }
+                if (deltaDirX.Length() >= deltaDirY.Length() && deltaDirX.X < 0)
+                { 
+                    return Direction.left;    
+                }
+                if (deltaDirY.Length() >= deltaDirX.Length() && deltaDirY.Y > 0)
+                { 
+                    return Direction.down;
+                }
+                if (deltaDirY.Length() >= deltaDirX.Length() && deltaDirY.Y < 0)
+                {
+                    return Direction.up;
+                }
+            }
+            return Direction.none; //unnecessary as the code should never reach here, supresses compiler error, however in case of bug check here first
+
         }
 
         public void DrawLineBetween(
@@ -276,6 +313,11 @@ namespace TileGame
             }
             return result;
         }
+
+        public void Swap(int indexX, int indexY, Piece.Direction direction)
+        {
+
+        }
     }
 
     public class Game1 : Game
@@ -344,7 +386,13 @@ namespace TileGame
             {
                 if (wasDown) //if was clicking on last frame
                     if (indexX >= 0 && indexY >= 0)
-                        board.pieces[indexX, indexY].DeSelected();
+                    {
+                        Piece.Direction direction = board.pieces[indexX, indexY].DeSelected();
+                        if (direction != Piece.Direction.none)
+                        {
+                            board.Swap(indexX, indexY, direction);
+                        }
+                    }
                 wasDown = false;
             }
 
