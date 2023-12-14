@@ -1,3 +1,3 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"V:/TileGame/TileGame/Content/blue.png","V:/TileGame/TileGame/Content/bin/DesktopGL/Content/blue.xnb","TextureProcessor","Texture2DContent",32229,262229,0.212335
-"V:/TileGame/TileGame/Content/giraffe.png","V:/TileGame/TileGame/Content/bin/DesktopGL/Content/giraffe.xnb","TextureProcessor","Texture2DContent",1200281,2560085,0.2274031
+"D:/Theo/Sem1/TileGame/TileGame/Content/blue.png","D:/Theo/Sem1/TileGame/TileGame/Content/bin/DesktopGL/Content/blue.xnb","TextureProcessor","Texture2DContent",32229,262229,16.21099
+"D:/Theo/Sem1/TileGame/TileGame/Content/giraffe.png","D:/Theo/Sem1/TileGame/TileGame/Content/bin/DesktopGL/Content/giraffe.xnb","TextureProcessor","Texture2DContent",1200281,2560085,16.662642

@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "zpd/u3GNpJPYQTfF5VvaNbHkSZJLWD0ASc6CdLHYnSwPIHbY6JzuGq9+QlxC7/ciH/FqLbvQ4hEgK4nxFLS8DQ==",
+  "dgSpecHash": "NLeW7YbK9HJ+K4YxU8iCZxR7l8KRvtizIqXxY3ZJU938WXJqDHEwuxkYz3DiNTRhgrVScLH0BboFig+jCFhuAA==",
   "success": true,
-  "projectFilePath": "V:\\TileGame\\TileGame\\TileGame.csproj",
+  "projectFilePath": "D:\\Theo\\Sem1\\TileGame\\TileGame\\TileGame.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\S22152649\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
-    "C:\\Users\\S22152649\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
+    "C:\\Users\\fab\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
+    "C:\\Users\\fab\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
   ],
   "logs": []
 }

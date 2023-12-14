@@ -247,24 +247,24 @@ namespace TileGame
         protected int size;
         public int count = 0;
         public Texture2D loadedAtlas;
-        
-        private int spacing = 25;
 
         public Board(int boardSize, Texture2D loadedAtlasTex)
         {
             size = boardSize;
             loadedAtlas = loadedAtlasTex;
             pieces = new Piece[size, size];
-            Vector2 scalingFactor = new Vector2((float) loadedAtlasTex.Width / _constants.screenWidth);
             for (int x = 0; x < size; x++)
             {
                 for (int y = 0; y < size; y++)
                 {
-                    pieces[x, y] = new Piece(loadedAtlas, x == size - 1 && y == size - 1, new Rectangle((int)Math.Round((float)x * loadedAtlas.Width/size),
+                    pieces[x, y] = new Piece(loadedAtlas, x == size - 1 && y == size - 1, new Rectangle(
+                        (int)Math.Round((float)x * loadedAtlas.Width/size),
                         (int)Math.Round((float)y * loadedAtlas.Height/size),
                         (int)Math.Round((float)loadedAtlas.Width/size),
                         (int)Math.Round((float)loadedAtlas.Height/size)));
-                    pieces[x, y].SetPosition(new Vector2((float) x * loadedAtlasTex.Width/size, (float) y * loadedAtlasTex.Height/size));
+                    pieces[x, y].SetPosition(new Vector2(
+                        (float)Math.Ceiling((float) x * loadedAtlasTex.Width/size),
+                        (float)Math.Ceiling((float) y * loadedAtlasTex.Height / size)));
                 }
             }
         }
@@ -313,7 +313,7 @@ namespace TileGame
                         if (pieces[indexX - 1, indexY].empty)  
                         {
                             ref Piece selected = ref pieces[indexX, indexY];
-                            selected.Move(new Vector2(-selected.GetRect().Width - spacing, 0));
+                            selected.Move(new Vector2(-selected.GetRect().Width, 0));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX - 1, indexY];
                             pieces[indexX - 1, indexY] = pieces[indexX, indexY];
@@ -327,7 +327,7 @@ namespace TileGame
                         if (pieces[indexX + 1, indexY].empty)  
                         {
                             ref Piece selected = ref pieces[indexX, indexY];
-                            selected.Move(new Vector2(selected.GetRect().Width + spacing, 0));
+                            selected.Move(new Vector2(selected.GetRect().Width, 0));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX + 1, indexY];
                             pieces[indexX + 1, indexY] = pieces[indexX, indexY];
@@ -341,7 +341,7 @@ namespace TileGame
                         if (pieces[indexX, indexY - 1].empty)
                         {
                             ref Piece selected = ref pieces[indexX, indexY];
-                            selected.Move(new Vector2(0, -selected.GetRect().Height - spacing));
+                            selected.Move(new Vector2(0, -selected.GetRect().Height));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX, indexY - 1];
                             pieces[indexX, indexY - 1] = pieces[indexX, indexY];
@@ -355,7 +355,7 @@ namespace TileGame
                         if (pieces[indexX, indexY + 1].empty)
                         {
                             ref Piece selected = ref pieces[indexX, indexY];
-                            selected.Move(new Vector2(0, selected.GetRect().Height + spacing));
+                            selected.Move(new Vector2(0, selected.GetRect().Height));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX, indexY + 1];
                             pieces[indexX, indexY + 1] = pieces[indexX, indexY];

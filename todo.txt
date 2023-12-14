@@ -1,5 +1,5 @@
 rename indexX and indexY to be more readable
 
-make drag position only work on x or y whichever is greater (store position before drag is complete and after drag is complete then max the x and y)
+make game detect when solved
 
-make tiles swap after drag
+make game shuffle tiles

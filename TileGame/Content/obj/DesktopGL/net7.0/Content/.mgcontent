@@ -4,8 +4,8 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>V:/TileGame/TileGame/Content/blue.png</File>
-    <File>V:/TileGame/TileGame/Content/giraffe.png</File>
+    <File>D:/Theo/Sem1/TileGame/TileGame/Content/blue.png</File>
+    <File>D:/Theo/Sem1/TileGame/TileGame/Content/giraffe.png</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />
