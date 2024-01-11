@@ -4,12 +4,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Color = Microsoft.Xna.Framework.Color;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -85,6 +87,7 @@ namespace TileGame
         };
         public bool empty;
         public bool selected = false;
+        public Vector2 correctPos;
         private Texture2D pieceTex;
         private Rectangle renderRect;
         private Rectangle textureRect;
@@ -92,13 +95,14 @@ namespace TileGame
         private Vector2 mouseOffset;
         private Direction swapDirection;
 
-        public Piece(Texture2D loadedPieceTex, bool isEmpty, Rectangle texRect) : base()
+        public Piece(Texture2D loadedPieceTex, bool isEmpty, Rectangle texRect, Vector2 correctPosition) : base()
         {
             pieceTex = loadedPieceTex;
             textureRect = texRect;
             empty = isEmpty;
             UpdateRect();
             oldPosition = position;
+            correctPos = correctPosition;
         }
 
         public void Draw(ref SpriteBatch batch)
@@ -261,7 +265,8 @@ namespace TileGame
                         (int)Math.Round((float)x * loadedAtlas.Width/size),
                         (int)Math.Round((float)y * loadedAtlas.Height/size),
                         (int)Math.Round((float)loadedAtlas.Width/size),
-                        (int)Math.Round((float)loadedAtlas.Height/size)));
+                        (int)Math.Round((float)loadedAtlas.Height/size)),
+                        new Vector2(x, y));
                     pieces[x, y].SetPosition(new Vector2(
                         (float)Math.Ceiling((float) x * loadedAtlasTex.Width/size),
                         (float)Math.Ceiling((float) y * loadedAtlasTex.Height / size)));
@@ -280,6 +285,22 @@ namespace TileGame
                 }
             }
             batch.End();
+        }
+
+        public bool IsCorrect()
+        {
+            bool wrong = false;
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    if (pieces[x,y].correctPos.X == x && pieces[x,y].correctPos.Y == y)
+                        wrong = true;
+                    else
+                        wrong = false;
+                }
+            }
+            return wrong;
         }
 
         public bool Click(Vector2 clickPos, ref int indexX, ref int indexY)
@@ -365,7 +386,78 @@ namespace TileGame
                     break;
             }
         }
+
+        public void Scramble(int n)
+        {
+            Random r = new Random(); //init
+            Vector2 emptyPiece = new Vector2(size - 1, size - 1); //epty square index is always bottom right
+            for (int i = 0; i < n; i++) //loop n times
+            {
+                bool swapped = false; //init
+                Piece.Direction swapDirection = (Piece.Direction)r.Next(5); //pick a random direction
+                switch (swapDirection)
+                {
+                    case Piece.Direction.right: //if moving right
+                    {
+                        if (emptyPiece.X == size - 1) //if on right edge
+                        {
+                            swapDirection = Piece.Direction.left; //swap right movement
+                            swapped = true;
+                        }
+                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //actually swap pieces
+                        if (swapped)
+                            emptyPiece.X -= 1; //move empty piece index to the left
+                        else
+                            emptyPiece.X += 1; //move empty piece index to the right
+                        break;
+                    }
+                    case Piece.Direction.left:
+                    {
+                        if (emptyPiece.X == 0)
+                        {
+                            swapDirection = Piece.Direction.right; //movement left
+                            swapped = true;
+                        }
+                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //swap piece
+                        if (swapped)
+                            emptyPiece.X += 1; //empty to right
+                        else
+                            emptyPiece.X -= 1; //empty to left
+                        break;
+                    }
+                    case Piece.Direction.down:
+                    {
+                        if (emptyPiece.Y == size - 1)
+                        {
+                            swapDirection = Piece.Direction.up; //..down
+                            swapped = true;
+                        }
+                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //swap piece
+                        if (swapped)
+                            emptyPiece.Y -= 1; //empty up
+                        else
+                            emptyPiece.Y += 1; //empty down
+                        break;
+                    }
+                    case Piece.Direction.up:
+                    {
+                        if (emptyPiece.Y == 0)
+                        {
+                            swapDirection = Piece.Direction.down; //.. up
+                            swapped = true;
+                        }
+                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //swap piece
+                        if (swapped)
+                            emptyPiece.Y += 1; //empty down
+                        else
+                            emptyPiece.Y -= 1; //empty up
+                        break;
+                    }
+                }
+            }
+        }
     }
+
 
     public class Game1 : Game
     {
@@ -398,7 +490,9 @@ namespace TileGame
             _graphics.PreferredBackBufferHeight = _constants.screenHeight;
             _graphics.ApplyChanges();
 
-            board = new Board(3, giraffeAtlas);
+            board = new Board(3, giraffeAtlas); //init new board
+
+            board.Scramble(1000000); //scramble the board
         }
 
         protected override void LoadContent()
@@ -422,28 +516,30 @@ namespace TileGame
             mousePos.X = mState.Position.X; //update mouse position
             mousePos.Y = mState.Position.Y; //..
 
+            Window.Title = board.IsCorrect().ToString();
+
             if (mState.LeftButton == ButtonState.Pressed) //if clicking and clicking a piece
             {
                 if (!wasDown) //if wasn't clicking on last frame
                     board.Click(mousePos, ref indexX, ref indexY); //select piece
                 if (indexX >= 0 && indexY >= 0) //if clicked on a piece
                     board.pieces[indexX, indexY].DragPosition(mousePos); //update position
-                Window.Title = "x: " + indexX.ToString() + " y: " + indexY.ToString();
+
                 wasDown = true; //indicate the mouse was clicked on next loop
             }
 
             if (mState.LeftButton == ButtonState.Released)
             {
                 if (wasDown) //if was clicking on last frame
-                    if (indexX >= 0 && indexY >= 0)
+                    if (indexX >= 0 && indexY >= 0) //if clicking on a tile
                     {
-                        Piece.Direction direction = board.pieces[indexX, indexY].DeSelected();
-                        if (direction != Piece.Direction.none)
+                        Piece.Direction direction = board.pieces[indexX, indexY].DeSelected(); //unselect piece
+                        if (direction != Piece.Direction.none) //if piece wasn't released in the same spot
                         {
-                            board.Swap(indexX, indexY, direction);
+                            board.Swap(indexX, indexY, direction); //swap
                         }
                     }
-                wasDown = false;
+                wasDown = false; //reset mouse flipflop
             }
 
             base.Update(gameTime);
