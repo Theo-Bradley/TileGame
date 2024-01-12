@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -126,8 +127,10 @@ namespace TileGame
 
         public void UpdateRect()
         {
-            renderRect = new Rectangle((int) Math.Round(position.X), (int)Math.Round(position.Y),
-                (int) Math.Round(textureRect.Width * scale.X), (int) Math.Round(textureRect.Height * scale.Y));
+            renderRect = new Rectangle((int) MathF.Floor(position.X),
+                (int)MathF.Floor(position.Y),
+                (int) MathF.Ceiling((float)textureRect.Width * scale.X),
+                (int) MathF.Ceiling((float)textureRect.Height * scale.Y));
         }
 
         public Rectangle GetRect()
@@ -196,7 +199,7 @@ namespace TileGame
 
         #region transformations
         public void Scale(Vector2 amount, bool aboutCenter)
-        { 
+        {
             Vector2 originalScale = scale;
             base.Scale(amount);
             if (aboutCenter)
@@ -250,7 +253,9 @@ namespace TileGame
         public Piece[,] pieces;
         protected int size;
         public int count = 0;
-        public Texture2D loadedAtlas;
+        public Texture2D loadedAtlas; //(loaded) texture atlas for board
+        public float boardPixels = 800f; //total width of board
+
 
         public Board(int boardSize, Texture2D loadedAtlasTex)
         {
@@ -261,15 +266,34 @@ namespace TileGame
             {
                 for (int y = 0; y < size; y++)
                 {
+                    Vector2 positionOffset = Vector2.Zero; //xy shift of square image subset
+                    Vector2 sizeOffset = Vector2.Zero; //size offset to keep subset square
+                    if (loadedAtlas.Width < loadedAtlas.Height) //if taller than wide, then width is the maximum size of subset
+                    {
+                        positionOffset.Y = (float)(loadedAtlas.Height - loadedAtlas.Width) / 2;
+                        sizeOffset.Y = loadedAtlas.Height - loadedAtlas.Width;
+                    }
+                    if (loadedAtlas.Height < loadedAtlas.Width) //..wider than tall.. height ..
+                    {
+                        positionOffset.X = (float)(loadedAtlas.Width - loadedAtlas.Height) / 2;
+                        sizeOffset.X = loadedAtlas.Width - loadedAtlas.Height;
+                    }
+                    Rectangle squareRect = new Rectangle((int)MathF.Floor(positionOffset.X),
+                        (int)MathF.Floor(positionOffset.Y),
+                        (int)MathF.Floor(loadedAtlas.Width - sizeOffset.X),
+                        (int)MathF.Floor(loadedAtlas.Height - sizeOffset.Y)); //largest possible square subset of image
                     pieces[x, y] = new Piece(loadedAtlas, x == size - 1 && y == size - 1, new Rectangle(
-                        (int)Math.Round((float)x * loadedAtlas.Width/size),
-                        (int)Math.Round((float)y * loadedAtlas.Height/size),
-                        (int)Math.Round((float)loadedAtlas.Width/size),
-                        (int)Math.Round((float)loadedAtlas.Height/size)),
-                        new Vector2(x, y));
+                        (int)Math.Round((float)x * squareRect.Width/size + positionOffset.X),
+                        (int)Math.Round((float)y * squareRect.Height/size + positionOffset.Y),
+                        (int)Math.Round((float)squareRect.Width/size),
+                        (int)Math.Round((float)squareRect.Height/size)),
+                        new Vector2(x, y)); //create piece
+                    pieces[x, y].SetScale(new Vector2(boardPixels / squareRect.Width,
+                        boardPixels / squareRect.Height)); //scale board to size: boardPixels
                     pieces[x, y].SetPosition(new Vector2(
-                        (float)Math.Ceiling((float) x * loadedAtlasTex.Width/size),
-                        (float)Math.Ceiling((float) y * loadedAtlasTex.Height / size)));
+                        (float)Math.Ceiling((float) x * boardPixels / size),
+                        (float)Math.Ceiling((float) y * boardPixels / size))); //set inital position
+                    
                 }
             }
         }
@@ -466,7 +490,7 @@ namespace TileGame
         float deltaTime = 0;
         Vector2 mousePos;
 
-        private Texture2D pieceTex;
+        private Texture2D customAtlas;
         private Texture2D giraffeAtlas;
         private Board board;
         private int indexX = 0, indexY = 0;
@@ -500,8 +524,8 @@ namespace TileGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            pieceTex = Content.Load<Texture2D>("blue");
             giraffeAtlas = Content.Load<Texture2D>("giraffe");
+            customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/elephant.png");
 
         }
 
@@ -540,6 +564,11 @@ namespace TileGame
                         }
                     }
                 wasDown = false; //reset mouse flipflop
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                board = new Board(3, customAtlas);
             }
 
             base.Update(gameTime);

@@ -1,5 +1,4 @@
 rename indexX and indexY to be more readable
 
-make game detect when solved
-
 make game shuffle tiles
+	make random direction not pick none
