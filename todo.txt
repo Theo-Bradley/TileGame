@@ -2,3 +2,11 @@ rename indexX and indexY to be more readable
 
 make game shuffle tiles
 	make random direction not pick none
+
+Solver:
+	store all scramble moves in a list
+	append all player moves
+	reverse
+	solved
+
+add m+k controls

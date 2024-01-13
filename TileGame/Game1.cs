@@ -22,7 +22,7 @@ namespace TileGame
 {
     public class _constants
     {
-        public const int screenWidth = 1000;
+        public const int screenWidth = 1100;
         public const int screenHeight = 1000;
         public const float PI = 3.14159f;
     }
@@ -106,12 +106,12 @@ namespace TileGame
             correctPos = correctPosition;
         }
 
-        public void Draw(ref SpriteBatch batch)
+        public void Draw(ref SpriteBatch batch, Texture2D emptyTex)
         {
-            if (!empty)
-            {
+            if (empty)
+                batch.Draw(emptyTex, renderRect, textureRect, Color.White);
+            else
                 batch.Draw(pieceTex, renderRect, textureRect, Color.White);
-            }
         }
 
         public bool Click(Vector2 clickPos)
@@ -255,36 +255,38 @@ namespace TileGame
         public int count = 0;
         public Texture2D loadedAtlas; //(loaded) texture atlas for board
         public float boardPixels = 800f; //total width of board
+        public Texture2D emptyTex; //texture for empty piece
 
-
-        public Board(int boardSize, Texture2D loadedAtlasTex)
+        public Board(int boardSize, Texture2D loadedAtlasTex, GraphicsDevice graphicsDevice)
         {
             size = boardSize;
             loadedAtlas = loadedAtlasTex;
             pieces = new Piece[size, size];
+
+            Vector2 positionOffset = Vector2.Zero; //xy shift of square image subset
+            Vector2 sizeOffset = Vector2.Zero; //size offset to keep subset square
+            if (loadedAtlas.Width < loadedAtlas.Height) //if taller than wide, then width is the maximum size of subset
+            {
+                positionOffset.Y = (float)(loadedAtlas.Height - loadedAtlas.Width) / 2;
+                sizeOffset.Y = loadedAtlas.Height - loadedAtlas.Width;
+            }
+            if (loadedAtlas.Height < loadedAtlas.Width) //..wider than tall.. height ..
+            {
+                positionOffset.X = (float)(loadedAtlas.Width - loadedAtlas.Height) / 2;
+                sizeOffset.X = loadedAtlas.Width - loadedAtlas.Height;
+            }
+            Rectangle squareRect = new Rectangle((int)MathF.Floor(positionOffset.X),
+                (int)MathF.Floor(positionOffset.Y),
+                (int)MathF.Floor(loadedAtlas.Width - sizeOffset.X),
+                (int)MathF.Floor(loadedAtlas.Height - sizeOffset.Y)); //largest possible square subset of image
+
             for (int x = 0; x < size; x++)
             {
                 for (int y = 0; y < size; y++)
                 {
-                    Vector2 positionOffset = Vector2.Zero; //xy shift of square image subset
-                    Vector2 sizeOffset = Vector2.Zero; //size offset to keep subset square
-                    if (loadedAtlas.Width < loadedAtlas.Height) //if taller than wide, then width is the maximum size of subset
-                    {
-                        positionOffset.Y = (float)(loadedAtlas.Height - loadedAtlas.Width) / 2;
-                        sizeOffset.Y = loadedAtlas.Height - loadedAtlas.Width;
-                    }
-                    if (loadedAtlas.Height < loadedAtlas.Width) //..wider than tall.. height ..
-                    {
-                        positionOffset.X = (float)(loadedAtlas.Width - loadedAtlas.Height) / 2;
-                        sizeOffset.X = loadedAtlas.Width - loadedAtlas.Height;
-                    }
-                    Rectangle squareRect = new Rectangle((int)MathF.Floor(positionOffset.X),
-                        (int)MathF.Floor(positionOffset.Y),
-                        (int)MathF.Floor(loadedAtlas.Width - sizeOffset.X),
-                        (int)MathF.Floor(loadedAtlas.Height - sizeOffset.Y)); //largest possible square subset of image
                     pieces[x, y] = new Piece(loadedAtlas, x == size - 1 && y == size - 1, new Rectangle(
-                        (int)Math.Round((float)x * squareRect.Width/size + positionOffset.X),
-                        (int)Math.Round((float)y * squareRect.Height/size + positionOffset.Y),
+                        (int)Math.Round((float)x * squareRect.Width/size + squareRect.X),
+                        (int)Math.Round((float)y * squareRect.Height/size + squareRect.Y),
                         (int)Math.Round((float)squareRect.Width/size),
                         (int)Math.Round((float)squareRect.Height/size)),
                         new Vector2(x, y)); //create piece
@@ -292,10 +294,21 @@ namespace TileGame
                         boardPixels / squareRect.Height)); //scale board to size: boardPixels
                     pieces[x, y].SetPosition(new Vector2(
                         (float)Math.Ceiling((float) x * boardPixels / size),
-                        (float)Math.Ceiling((float) y * boardPixels / size))); //set inital position
-                    
+                        (float)Math.Ceiling((float) y * boardPixels / size)));  //set inital position
                 }
             }
+
+            //create texture for empty piece
+            Vector2 texSize = new Vector2((float)squareRect.Width / size, (float)squareRect.Height / size); //size of new tex
+            emptyTex = new Texture2D(graphicsDevice, (int)MathF.Floor(texSize.X), (int)MathF.Floor(texSize.Y)); //init tex
+             
+            Color[] texData = new Color[(int)MathF.Floor(texSize.X) * (int)MathF.Floor(texSize.Y)]; //init data array
+            for (int i = 0; i < texData.Length; i++) //loop over array
+            {
+                texData[i] = Color.CornflowerBlue; //populate with colour
+            }
+
+            emptyTex.SetData<Color>(texData); //fill tex
         }
 
         public void Draw(ref SpriteBatch batch)
@@ -305,7 +318,7 @@ namespace TileGame
             {
                 for (int y = 0; y < size; y++)
                 {
-                    pieces[x, y].Draw(ref batch);
+                    pieces[x, y].Draw(ref batch, emptyTex);
                 }
             }
             batch.End();
@@ -482,6 +495,38 @@ namespace TileGame
         }
     }
 
+    public class Button : GameObject
+    {
+        Rectangle renderRect;
+        Texture2D textureRect;
+        Color buttonColor;
+        Func<int> clickFunc;
+
+        public Button(Vector2 startPos, Vector2 extents, Color color, Func<int> ClickFunction, GraphicsDevice graphicsDevice) : base()
+        {
+            renderRect = new Rectangle((int)MathF.Round(startPos.X),
+                (int)MathF.Round(startPos.Y),
+                (int)MathF.Round(extents.X),
+                (int)MathF.Round(extents.Y));
+            textureRect = new Texture2D(graphicsDevice, 1, 1);
+            textureRect.SetData(new Color[]{new Color(1f, 1f, 1f, 1f)}); //fill texture with a white colour
+            buttonColor = color;
+            clickFunc = ClickFunction;
+        }
+
+        public void Draw(ref SpriteBatch batch)
+        {
+            batch.Draw(textureRect, renderRect, buttonColor);
+        }
+
+        public void Clicked(Vector2 mPos)
+        {
+            if (renderRect.Contains(mPos)) //if mouse was inside the render rect when clicked
+            {
+                int result = clickFunc(); //call clickFunc (result is unused)
+            }
+        }
+    }
 
     public class Game1 : Game
     {
@@ -490,18 +535,25 @@ namespace TileGame
         float deltaTime = 0;
         Vector2 mousePos;
 
-        private Texture2D customAtlas;
+        private Texture2D customAtlas; //custom loaded atlas
         private Texture2D giraffeAtlas;
         private Board board;
         private int indexX = 0, indexY = 0;
         private bool wasDown = false;
         private int bin = 0; //used to hold discarded arguments
+        private Button scrambleButton;
 
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+        }
+        private int ScrambleBoard()
+        {
+            board.Scramble(1000000); //scramble board
+
+            return 0; //ignore this
         }
 
         protected override void Initialize()
@@ -514,19 +566,18 @@ namespace TileGame
             _graphics.PreferredBackBufferHeight = _constants.screenHeight;
             _graphics.ApplyChanges();
 
-            board = new Board(3, giraffeAtlas); //init new board
+            scrambleButton = new Button(new Vector2(850, 150), new Vector2(100, 100), new Color(47, 54, 61), ScrambleBoard, _graphics.GraphicsDevice);
 
-            board.Scramble(1000000); //scramble the board
+            board = new Board(3, giraffeAtlas, _graphics.GraphicsDevice); //init new board
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
             giraffeAtlas = Content.Load<Texture2D>("giraffe");
-            customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice, Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/elephant.png");
-
+            customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice,
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/customAtlas.png");
         }
 
         protected override void Update(GameTime gameTime)
@@ -545,7 +596,10 @@ namespace TileGame
             if (mState.LeftButton == ButtonState.Pressed) //if clicking and clicking a piece
             {
                 if (!wasDown) //if wasn't clicking on last frame
+                {
                     board.Click(mousePos, ref indexX, ref indexY); //select piece
+                    scrambleButton.Clicked(mousePos);
+                }
                 if (indexX >= 0 && indexY >= 0) //if clicked on a piece
                     board.pieces[indexX, indexY].DragPosition(mousePos); //update position
 
@@ -568,7 +622,7 @@ namespace TileGame
 
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
             {
-                board = new Board(3, customAtlas);
+                board = new Board(3, customAtlas, _graphics.GraphicsDevice);
             }
 
             base.Update(gameTime);
@@ -577,16 +631,13 @@ namespace TileGame
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue); //clear with blue colour
-
-            // TODO: Add your drawing code here
-            /*_spriteBatch.Begin();
-
-            _spriteBatch.Draw(pieceTex, new Vector2(400, 400), Color.White);
-
-            _spriteBatch.End();*/
+            GraphicsDevice.Clear(new Color(36, 41, 46)); //clear with dark grey
 
             board.Draw(ref _spriteBatch);
+            
+            _spriteBatch.Begin();
+            scrambleButton.Draw(ref _spriteBatch);
+            _spriteBatch.End();
 
             base.Draw(gameTime);
         }
