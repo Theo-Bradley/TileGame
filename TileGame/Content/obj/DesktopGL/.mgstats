@@ -1,3 +1,5 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"V:/TileGame/TileGame/Content/blue.png","V:/TileGame/TileGame/Content/bin/DesktopGL/blue.xnb","TextureProcessor","Texture2DContent",32229,262229,0.2356841
-"V:/TileGame/TileGame/Content/giraffe.png","V:/TileGame/TileGame/Content/bin/DesktopGL/giraffe.xnb","TextureProcessor","Texture2DContent",1200281,2560085,0.228753
+"D:/Theo/Sem1/TileGame/TileGame/Content/blue.png","D:/Theo/Sem1/TileGame/TileGame/Content/bin/DesktopGL/blue.xnb","TextureProcessor","Texture2DContent",32229,262229,0.4136857
+"D:/Theo/Sem1/TileGame/TileGame/Content/giraffe.png","D:/Theo/Sem1/TileGame/TileGame/Content/bin/DesktopGL/giraffe.xnb","TextureProcessor","Texture2DContent",1200281,2560085,0.2632668
+"D:/Theo/Sem1/TileGame/TileGame/Content/image(1).png","D:/Theo/Sem1/TileGame/TileGame/Content/bin/DesktopGL/image(1).xnb","TextureProcessor","Texture2DContent",26306,6553685,0.6766645
+"D:/Theo/Sem1/TileGame/TileGame/Content/refresh-cw(1).png","D:/Theo/Sem1/TileGame/TileGame/Content/bin/DesktopGL/refresh-cw(1).xnb","TextureProcessor","Texture2DContent",38700,6553685,0.4244218

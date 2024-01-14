@@ -140,6 +140,8 @@ namespace TileGame
 
         public void DragPosition(Vector2 mousePosition)
         {
+            if (empty)
+                return;
             Vector2 deltaX = new Vector2(mousePosition.X - oldPosition.X, 0f); //change in the x axis
             Vector2 deltaY = new Vector2(0f, mousePosition.Y - oldPosition.Y); //change in the y axis
 
@@ -257,7 +259,7 @@ namespace TileGame
         public float boardPixels = 800f; //total width of board
         public Texture2D emptyTex; //texture for empty piece
 
-        public Board(int boardSize, Texture2D loadedAtlasTex, GraphicsDevice graphicsDevice)
+        public Board(Vector2 position, int boardSize, Texture2D loadedAtlasTex, GraphicsDevice graphicsDevice)
         {
             size = boardSize;
             loadedAtlas = loadedAtlasTex;
@@ -293,8 +295,8 @@ namespace TileGame
                     pieces[x, y].SetScale(new Vector2(boardPixels / squareRect.Width,
                         boardPixels / squareRect.Height)); //scale board to size: boardPixels
                     pieces[x, y].SetPosition(new Vector2(
-                        (float)Math.Ceiling((float) x * boardPixels / size),
-                        (float)Math.Ceiling((float) y * boardPixels / size)));  //set inital position
+                        (float)Math.Ceiling((float) x * boardPixels / size + position.X),
+                        (float)Math.Ceiling((float) y * boardPixels / size + position.Y)));  //set inital position
                 }
             }
 
@@ -318,7 +320,20 @@ namespace TileGame
             {
                 for (int y = 0; y < size; y++)
                 {
-                    pieces[x, y].Draw(ref batch, emptyTex);
+                    if (pieces[x, y].empty)
+                    {
+                        pieces[x, y].Draw(ref batch, emptyTex);
+                        goto BoardDrawJump;
+                    }
+                }
+            }
+            BoardDrawJump:
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size; y++)
+                {
+                    if (!pieces[x, y].empty)
+                        pieces[x, y].Draw(ref batch, emptyTex);
                 }
             }
             batch.End();
@@ -374,6 +389,8 @@ namespace TileGame
                             selected.Move(new Vector2(-selected.GetRect().Width, 0));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX - 1, indexY];
+                            temp.Move(new Vector2(temp.GetRect().Width, 0));
+                            temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX - 1, indexY] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
                         }
@@ -388,6 +405,8 @@ namespace TileGame
                             selected.Move(new Vector2(selected.GetRect().Width, 0));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX + 1, indexY];
+                            temp.Move(new Vector2(-temp.GetRect().Width, 0));
+                            temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX + 1, indexY] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
                         }
@@ -402,6 +421,8 @@ namespace TileGame
                             selected.Move(new Vector2(0, -selected.GetRect().Height));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX, indexY - 1];
+                            temp.Move(new Vector2(0, temp.GetRect().Height));
+                            temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX, indexY - 1] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
                         }
@@ -416,6 +437,8 @@ namespace TileGame
                             selected.Move(new Vector2(0, selected.GetRect().Height));
                             selected.SetOldPosition(selected.GetPosition());
                             Piece temp = pieces[indexX, indexY + 1];
+                            temp.Move(new Vector2(0, -temp.GetRect().Height));
+                            temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX, indexY + 1] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
                         }
@@ -441,11 +464,16 @@ namespace TileGame
                             swapDirection = Piece.Direction.left; //swap right movement
                             swapped = true;
                         }
-                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //actually swap pieces
                         if (swapped)
+                        {
+                            Swap((int)emptyPiece.X - 1, (int)emptyPiece.Y, Piece.Direction.right); //actually swap pieces
                             emptyPiece.X -= 1; //move empty piece index to the left
+                        }
                         else
+                        {
+                            Swap((int)emptyPiece.X + 1, (int)emptyPiece.Y, Piece.Direction.left); //actually swap pieces
                             emptyPiece.X += 1; //move empty piece index to the right
+                        }
                         break;
                     }
                     case Piece.Direction.left:
@@ -455,25 +483,35 @@ namespace TileGame
                             swapDirection = Piece.Direction.right; //movement left
                             swapped = true;
                         }
-                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //swap piece
                         if (swapped)
+                        {
+                            Swap((int)emptyPiece.X + 1, (int)emptyPiece.Y, Piece.Direction.left); //actually swap pieces
                             emptyPiece.X += 1; //empty to right
+                        }
                         else
+                        {
+                            Swap((int)emptyPiece.X - 1, (int)emptyPiece.Y, Piece.Direction.right); //actually swap pieces
                             emptyPiece.X -= 1; //empty to left
+                        }
                         break;
                     }
                     case Piece.Direction.down:
                     {
                         if (emptyPiece.Y == size - 1)
                         {
-                            swapDirection = Piece.Direction.up; //..down
+                            swapDirection = Piece.Direction.up; //..up
                             swapped = true;
                         }
-                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //swap piece
                         if (swapped)
+                        {
+                            Swap((int)emptyPiece.X, (int)emptyPiece.Y - 1, Piece.Direction.down); //actually swap pieces
                             emptyPiece.Y -= 1; //empty up
+                        }
                         else
+                        {
+                            Swap((int)emptyPiece.X, (int)emptyPiece.Y + 1, Piece.Direction.up); //actually swap pieces
                             emptyPiece.Y += 1; //empty down
+                        }
                         break;
                     }
                     case Piece.Direction.up:
@@ -483,11 +521,16 @@ namespace TileGame
                             swapDirection = Piece.Direction.down; //.. up
                             swapped = true;
                         }
-                        Swap((int)emptyPiece.X, (int)emptyPiece.Y, swapDirection); //swap piece
                         if (swapped)
+                        {
+                            Swap((int)emptyPiece.X, (int)emptyPiece.Y + 1, Piece.Direction.up); //actually swap pieces
                             emptyPiece.Y += 1; //empty down
+                        }
                         else
+                        {
+                            Swap((int)emptyPiece.X, (int)emptyPiece.Y - 1, Piece.Direction.down); //actually swap pieces
                             emptyPiece.Y -= 1; //empty up
+                        }
                         break;
                     }
                 }
@@ -498,18 +541,27 @@ namespace TileGame
     public class Button : GameObject
     {
         Rectangle renderRect;
+        Rectangle iconRect;
         Texture2D textureRect;
+        Texture2D iconTex;
         Color buttonColor;
         Func<int> clickFunc;
 
-        public Button(Vector2 startPos, Vector2 extents, Color color, Func<int> ClickFunction, GraphicsDevice graphicsDevice) : base()
+        public Button(Vector2 startPos, Vector2 extents,
+            Color color, Texture2D loadedIcon,
+            Func<int> ClickFunction, GraphicsDevice graphicsDevice) : base()
         {
             renderRect = new Rectangle((int)MathF.Round(startPos.X),
                 (int)MathF.Round(startPos.Y),
                 (int)MathF.Round(extents.X),
                 (int)MathF.Round(extents.Y));
-            textureRect = new Texture2D(graphicsDevice, 1, 1);
+            iconRect = new Rectangle((int)MathF.Round(extents.X * 0.1f + startPos.X),
+                (int)MathF.Round(extents.Y * 0.1f + startPos.Y),
+                (int)MathF.Round(extents.X * 0.8f),
+                (int)MathF.Round(extents.Y * 0.8f));
+            textureRect = new Texture2D(graphicsDevice, 1, 1); //init texture
             textureRect.SetData(new Color[]{new Color(1f, 1f, 1f, 1f)}); //fill texture with a white colour
+            iconTex = loadedIcon;
             buttonColor = color;
             clickFunc = ClickFunction;
         }
@@ -517,6 +569,7 @@ namespace TileGame
         public void Draw(ref SpriteBatch batch)
         {
             batch.Draw(textureRect, renderRect, buttonColor);
+            batch.Draw(iconTex, iconRect, Color.White);
         }
 
         public void Clicked(Vector2 mPos)
@@ -537,11 +590,15 @@ namespace TileGame
 
         private Texture2D customAtlas; //custom loaded atlas
         private Texture2D giraffeAtlas;
+        private Texture2D refresh;
+        private Texture2D img;
         private Board board;
         private int indexX = 0, indexY = 0;
         private bool wasDown = false;
+        private bool usingCustomAtlas = false;
         private int bin = 0; //used to hold discarded arguments
         private Button scrambleButton;
+        private Button imageButton;
 
         public Game1()
         {
@@ -556,19 +613,41 @@ namespace TileGame
             return 0; //ignore this
         }
 
+        private int SwapAtlas()
+        {
+            if (usingCustomAtlas)
+            {
+                board = new Board(new Vector2(25, 25), 3, giraffeAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
+                usingCustomAtlas = false;
+            }
+            else
+            {
+                board = new Board(new Vector2(25, 25), 3, customAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
+                usingCustomAtlas = true;
+            }
+
+            return 0;
+        }
+
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
 
             base.Initialize();
 
-            _graphics.PreferredBackBufferWidth = _constants.screenWidth;
-            _graphics.PreferredBackBufferHeight = _constants.screenHeight;
-            _graphics.ApplyChanges();
+            _graphics.PreferredBackBufferWidth = _constants.screenWidth; //resize buffers to window size
+            _graphics.PreferredBackBufferHeight = _constants.screenHeight; //..
+            _graphics.ApplyChanges(); //update
 
-            scrambleButton = new Button(new Vector2(850, 150), new Vector2(100, 100), new Color(47, 54, 61), ScrambleBoard, _graphics.GraphicsDevice);
+            scrambleButton = new Button(new Vector2(850, 150), new Vector2(100, 100),
+                new Color(47, 54, 61), refresh,
+                ScrambleBoard, _graphics.GraphicsDevice); //create button to scramble board
 
-            board = new Board(3, giraffeAtlas, _graphics.GraphicsDevice); //init new board
+            imageButton = new Button(new Vector2(975, 150), new Vector2(100, 100),
+                new Color(47, 54, 61), img,
+                SwapAtlas, _graphics.GraphicsDevice); //create an image button
+
+            board = new Board(new Vector2(25, 25), 3, giraffeAtlas, _graphics.GraphicsDevice); //init new board
         }
 
         protected override void LoadContent()
@@ -576,8 +655,10 @@ namespace TileGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             giraffeAtlas = Content.Load<Texture2D>("giraffe");
+            refresh = Content.Load<Texture2D>("refresh-cw(1)");
+            img = Content.Load<Texture2D>("image(1)");
             customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice,
-                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/customAtlas.png");
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/customAtlas.png"); //load custom atlas
         }
 
         protected override void Update(GameTime gameTime)
@@ -598,7 +679,8 @@ namespace TileGame
                 if (!wasDown) //if wasn't clicking on last frame
                 {
                     board.Click(mousePos, ref indexX, ref indexY); //select piece
-                    scrambleButton.Clicked(mousePos);
+                    scrambleButton.Clicked(mousePos); //tell button a click has occured
+                    imageButton.Clicked(mousePos); //.
                 }
                 if (indexX >= 0 && indexY >= 0) //if clicked on a piece
                     board.pieces[indexX, indexY].DragPosition(mousePos); //update position
@@ -620,11 +702,6 @@ namespace TileGame
                 wasDown = false; //reset mouse flipflop
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
-            {
-                board = new Board(3, customAtlas, _graphics.GraphicsDevice);
-            }
-
             base.Update(gameTime);
             deltaTime = (float) gameTime.ElapsedGameTime.TotalSeconds; //calculate delta time in seconds
         }
@@ -636,7 +713,8 @@ namespace TileGame
             board.Draw(ref _spriteBatch);
             
             _spriteBatch.Begin();
-            scrambleButton.Draw(ref _spriteBatch);
+            scrambleButton.Draw(ref _spriteBatch); //draw buttons
+            imageButton.Draw(ref _spriteBatch); //..
             _spriteBatch.End();
 
             base.Draw(gameTime);

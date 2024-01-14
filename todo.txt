@@ -1,5 +1,3 @@
-rename indexX and indexY to be more readable
-
 make game shuffle tiles
 	make random direction not pick none
 
