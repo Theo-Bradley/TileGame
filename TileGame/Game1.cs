@@ -127,10 +127,10 @@ namespace TileGame
 
         public void UpdateRect()
         {
-            renderRect = new Rectangle((int) MathF.Floor(position.X),
-                (int)MathF.Floor(position.Y),
-                (int) MathF.Ceiling((float)textureRect.Width * scale.X),
-                (int) MathF.Ceiling((float)textureRect.Height * scale.Y));
+            renderRect = new Rectangle((int) MathF.Round(position.X),
+                (int)MathF.Round(position.Y),
+                (int) MathF.Round(textureRect.Width * scale.X),
+                (int) MathF.Round(textureRect.Height * scale.Y));
         }
 
         public Rectangle GetRect()
@@ -295,8 +295,8 @@ namespace TileGame
                     pieces[x, y].SetScale(new Vector2(boardPixels / squareRect.Width,
                         boardPixels / squareRect.Height)); //scale board to size: boardPixels
                     pieces[x, y].SetPosition(new Vector2(
-                        (float)Math.Ceiling((float) x * boardPixels / size + position.X),
-                        (float)Math.Ceiling((float) y * boardPixels / size + position.Y)));  //set inital position
+                        MathF.Ceiling(x * boardPixels / size + position.X),
+                        MathF.Ceiling(y * boardPixels / size + position.Y)));  //set inital position
                 }
             }
 
@@ -617,12 +617,12 @@ namespace TileGame
         {
             if (usingCustomAtlas)
             {
-                board = new Board(new Vector2(25, 25), 3, giraffeAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
+                board = new Board(new Vector2(25, 25), 4, giraffeAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
                 usingCustomAtlas = false;
             }
             else
             {
-                board = new Board(new Vector2(25, 25), 3, customAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
+                board = new Board(new Vector2(25, 25), 4, customAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
                 usingCustomAtlas = true;
             }
 
@@ -647,7 +647,7 @@ namespace TileGame
                 new Color(47, 54, 61), img,
                 SwapAtlas, _graphics.GraphicsDevice); //create an image button
 
-            board = new Board(new Vector2(25, 25), 3, giraffeAtlas, _graphics.GraphicsDevice); //init new board
+            board = new Board(new Vector2(25, 25), 4, giraffeAtlas, _graphics.GraphicsDevice); //init new board
         }
 
         protected override void LoadContent()
