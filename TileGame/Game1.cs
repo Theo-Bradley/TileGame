@@ -253,11 +253,12 @@ namespace TileGame
     public class Board
     {
         public Piece[,] pieces;
-        protected int size;
+        public int size;
         public int count = 0;
         public Texture2D loadedAtlas; //(loaded) texture atlas for board
         public float boardPixels = 800f; //total width of board
         public Texture2D emptyTex; //texture for empty piece
+        public Vector2 emptyPos;
 
         public Board(Vector2 position, int boardSize, Texture2D loadedAtlasTex, GraphicsDevice graphicsDevice)
         {
@@ -299,6 +300,8 @@ namespace TileGame
                         MathF.Ceiling(y * boardPixels / size + position.Y)));  //set inital position
                 }
             }
+
+            emptyPos = new Vector2(size - 1, size - 1); //update the empty position
 
             //create texture for empty piece
             Vector2 texSize = new Vector2((float)squareRect.Width / size, (float)squareRect.Height / size); //size of new tex
@@ -376,7 +379,7 @@ namespace TileGame
             return result;
         }
 
-        public void Swap(int indexX, int indexY, Piece.Direction direction)
+        public bool Swap(int indexX, int indexY, Piece.Direction direction)
         {
             switch (direction)
             {
@@ -393,7 +396,9 @@ namespace TileGame
                             temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX - 1, indexY] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
+                            return true;
                         }
+                        return false;
                     }
                     break;
                 case Piece.Direction.right:
@@ -409,7 +414,9 @@ namespace TileGame
                             temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX + 1, indexY] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
+                            return true;
                         }
+                        return false;
                     }
                     break;
                 case Piece.Direction.up:
@@ -425,7 +432,9 @@ namespace TileGame
                             temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX, indexY - 1] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
+                            return true;
                         }
+                        return false;
                     }
                     break;
                 case Piece.Direction.down:
@@ -441,10 +450,13 @@ namespace TileGame
                             temp.SetOldPosition(temp.GetPosition());
                             pieces[indexX, indexY + 1] = pieces[indexX, indexY];
                             pieces[indexX, indexY] = temp;
+                            return true;
                         }
+                        return false;
                     }
                     break;
             }
+            return false;
         }
 
         public void Scramble(int n)
@@ -535,6 +547,8 @@ namespace TileGame
                     }
                 }
             }
+
+            emptyPos = emptyPiece; //update the position of the empty piece in the class
         }
     }
 
@@ -592,13 +606,19 @@ namespace TileGame
         private Texture2D giraffeAtlas;
         private Texture2D refresh;
         private Texture2D img;
+        private Texture2D sMinus;
+        private Texture2D sPlus;
         private Board board;
         private int indexX = 0, indexY = 0;
+        private Vector2 piecePos;
         private bool wasDown = false;
         private bool usingCustomAtlas = false;
         private int bin = 0; //used to hold discarded arguments
+        private byte arrowKeysFlag = 0b00000000; //holds which arrow keys were pressed on the last frame
         private Button scrambleButton;
         private Button imageButton;
+        private Button sizePlusButton;
+        private Button sizeMinusButton;
 
         public Game1()
         {
@@ -609,24 +629,52 @@ namespace TileGame
         private int ScrambleBoard()
         {
             board.Scramble(1000000); //scramble board
-
             return 0; //ignore this
+        }
+
+        private int SizeMinus()
+        {
+            if (board.size > 2)
+                return 0; //early exit
+            //regen smaller board
+            board = new Board(new Vector2(25, 25), board.size - 1, board.loadedAtlas, _graphics.GraphicsDevice);
+            return 0; //..
+        }
+
+        private int SizePlus()
+        {
+            //regen larger board
+            board = new Board(new Vector2(25, 25), board.size + 1, board.loadedAtlas, _graphics.GraphicsDevice);
+            return 0; //..
         }
 
         private int SwapAtlas()
         {
             if (usingCustomAtlas)
             {
-                board = new Board(new Vector2(25, 25), 4, giraffeAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
+                board = new Board(new Vector2(25, 25), board.size, giraffeAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
                 usingCustomAtlas = false;
             }
             else
             {
-                board = new Board(new Vector2(25, 25), 4, customAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
+                board = new Board(new Vector2(25, 25), board.size, customAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
                 usingCustomAtlas = true;
             }
 
             return 0;
+        }
+
+        protected override void LoadContent()
+        {
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            giraffeAtlas = Content.Load<Texture2D>("giraffe");
+            refresh = Content.Load<Texture2D>("refresh-cw(1)");
+            img = Content.Load<Texture2D>("image(1)");
+            sMinus = Content.Load<Texture2D>("minus");
+            sPlus = Content.Load<Texture2D>("plus");
+            customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice,
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/customAtlas.png"); //load custom atlas
         }
 
         protected override void Initialize()
@@ -647,19 +695,18 @@ namespace TileGame
                 new Color(47, 54, 61), img,
                 SwapAtlas, _graphics.GraphicsDevice); //create an image button
 
+            sizeMinusButton = new Button(new Vector2(850, 275), new Vector2(100, 100),
+                new Color(47, 54, 61), sMinus,
+                SizeMinus, _graphics.GraphicsDevice); //create a minus button
+
+            sizePlusButton = new Button(new Vector2(975, 275), new Vector2(100, 100),
+                new Color(47, 54, 61), sPlus,
+                SizePlus, _graphics.GraphicsDevice); //create a plus button
+
             board = new Board(new Vector2(25, 25), 4, giraffeAtlas, _graphics.GraphicsDevice); //init new board
         }
 
-        protected override void LoadContent()
-        {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            giraffeAtlas = Content.Load<Texture2D>("giraffe");
-            refresh = Content.Load<Texture2D>("refresh-cw(1)");
-            img = Content.Load<Texture2D>("image(1)");
-            customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice,
-                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/customAtlas.png"); //load custom atlas
-        }
 
         protected override void Update(GameTime gameTime)
         {
@@ -680,7 +727,9 @@ namespace TileGame
                 {
                     board.Click(mousePos, ref indexX, ref indexY); //select piece
                     scrambleButton.Clicked(mousePos); //tell button a click has occured
-                    imageButton.Clicked(mousePos); //.
+                    imageButton.Clicked(mousePos); //..
+                    sizeMinusButton.Clicked(mousePos); //..
+                    sizePlusButton.Clicked(mousePos); //..
                 }
                 if (indexX >= 0 && indexY >= 0) //if clicked on a piece
                     board.pieces[indexX, indexY].DragPosition(mousePos); //update position
@@ -702,6 +751,70 @@ namespace TileGame
                 wasDown = false; //reset mouse flipflop
             }
 
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                if ((arrowKeysFlag & 0b00001000) == 0b00000000) //if left arrow not pressed on last frame
+                {
+                    piecePos = board.emptyPos; //get position of empty piece
+                    if (piecePos.X < board.size - 1) //if not on edge
+                    {
+                        if (board.Swap((int)piecePos.X + 1, (int)piecePos.Y, Piece.Direction.left)) //move piece to the right left
+                            board.emptyPos.X += 1; //update empty pos if actually moved
+                    }
+                    arrowKeysFlag |= 0b00001000; //set left arrow as pressed last frame
+                }
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                if ((arrowKeysFlag & 0b00000100) == 0b00000000) //.. right ..
+                {
+                    piecePos = board.emptyPos; //..
+                    if (piecePos.X > 0) //..
+                    {
+                        if(board.Swap((int)piecePos.X - 1, (int)piecePos.Y, Piece.Direction.right)) //..
+                            board.emptyPos.X -= 1; //..
+                    }
+                    arrowKeysFlag |= 0b00000100; //.. right ..
+                }
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            {
+                if ((arrowKeysFlag & 0b00000010) == 0b00000000) //.. up ..
+                {
+                    piecePos = board.emptyPos; //..
+                    if (piecePos.Y < board.size - 1) //..
+                    {
+                        if (board.Swap((int)piecePos.X, (int)piecePos.Y + 1, Piece.Direction.up)) //..
+                            board.emptyPos.Y += 1; //..
+                    }
+                    arrowKeysFlag |= 0b00000010; //.. up ..
+                }
+            }
+            if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                if ((arrowKeysFlag & 0b00000001) == 0b00000000) //.. down ..
+                {
+                    piecePos = board.emptyPos; //..
+                    if (piecePos.Y > 0) //..
+                    {
+                        if (board.Swap((int)piecePos.X, (int)piecePos.Y - 1, Piece.Direction.down)) //..
+                        {
+                            board.emptyPos.Y -= 1; //..
+                        }
+                    }
+                    arrowKeysFlag |= 0b00000001; //.. down ..
+                }
+            }
+
+            if (Keyboard.GetState().IsKeyUp(Keys.Left))
+                arrowKeysFlag &= 0b11110111; //unset flag
+            if (Keyboard.GetState().IsKeyUp(Keys.Right))
+                arrowKeysFlag &= 0b11111011; //..
+            if (Keyboard.GetState().IsKeyUp(Keys.Up))
+                arrowKeysFlag &= 0b11111101; //..
+            if (Keyboard.GetState().IsKeyUp(Keys.Down))
+                arrowKeysFlag &= 0b11111110; //..
+
             base.Update(gameTime);
             deltaTime = (float) gameTime.ElapsedGameTime.TotalSeconds; //calculate delta time in seconds
         }
@@ -715,6 +828,8 @@ namespace TileGame
             _spriteBatch.Begin();
             scrambleButton.Draw(ref _spriteBatch); //draw buttons
             imageButton.Draw(ref _spriteBatch); //..
+            sizeMinusButton.Draw(ref _spriteBatch); //..
+            sizePlusButton.Draw(ref _spriteBatch); //..
             _spriteBatch.End();
 
             base.Draw(gameTime);

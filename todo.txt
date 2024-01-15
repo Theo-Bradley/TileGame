@@ -6,5 +6,3 @@ Solver:
 	append all player moves
 	reverse
 	solved
-
-add m+k controls

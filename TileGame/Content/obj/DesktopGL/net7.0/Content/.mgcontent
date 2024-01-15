@@ -7,9 +7,13 @@
     <File>D:/Theo/Sem1/TileGame/TileGame/Content/blue.png</File>
     <File>D:/Theo/Sem1/TileGame/TileGame/Content/giraffe.png</File>
     <File>D:/Theo/Sem1/TileGame/TileGame/Content/image(1).png</File>
+    <File>D:/Theo/Sem1/TileGame/TileGame/Content/minus.png</File>
+    <File>D:/Theo/Sem1/TileGame/TileGame/Content/plus.png</File>
     <File>D:/Theo/Sem1/TileGame/TileGame/Content/refresh-cw(1).png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
