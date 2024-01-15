@@ -1,6 +1,8 @@
 make game shuffle tiles
 	make random direction not pick none
 
+add completion effect that is only triggered once per scramble
+
 Solver:
 	store all scramble moves in a list
 	append all player moves

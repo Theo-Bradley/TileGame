@@ -127,10 +127,10 @@ namespace TileGame
 
         public void UpdateRect()
         {
-            renderRect = new Rectangle((int) MathF.Round(position.X),
-                (int)MathF.Round(position.Y),
-                (int) MathF.Round(textureRect.Width * scale.X),
-                (int) MathF.Round(textureRect.Height * scale.Y));
+            renderRect = new Rectangle((int)Math.Round(position.X),
+                (int)Math.Round(position.Y),
+                (int)Math.Round(textureRect.Width * scale.X),
+                (int)Math.Round(textureRect.Height * scale.Y));
         }
 
         public Rectangle GetRect()
@@ -278,10 +278,10 @@ namespace TileGame
                 positionOffset.X = (float)(loadedAtlas.Width - loadedAtlas.Height) / 2;
                 sizeOffset.X = loadedAtlas.Width - loadedAtlas.Height;
             }
-            Rectangle squareRect = new Rectangle((int)MathF.Floor(positionOffset.X),
-                (int)MathF.Floor(positionOffset.Y),
-                (int)MathF.Floor(loadedAtlas.Width - sizeOffset.X),
-                (int)MathF.Floor(loadedAtlas.Height - sizeOffset.Y)); //largest possible square subset of image
+            Rectangle squareRect = new Rectangle((int)MathF.Round(positionOffset.X),
+                (int)MathF.Round(positionOffset.Y),
+                (int)MathF.Round(loadedAtlas.Width - sizeOffset.X),
+                (int)MathF.Round(loadedAtlas.Height - sizeOffset.Y)); //largest possible square subset of image
 
             for (int x = 0; x < size; x++)
             {
@@ -296,8 +296,24 @@ namespace TileGame
                     pieces[x, y].SetScale(new Vector2(boardPixels / squareRect.Width,
                         boardPixels / squareRect.Height)); //scale board to size: boardPixels
                     pieces[x, y].SetPosition(new Vector2(
-                        MathF.Ceiling(x * boardPixels / size + position.X),
-                        MathF.Ceiling(y * boardPixels / size + position.Y)));  //set inital position
+                        (float)Math.Round(x * boardPixels / size + position.X),
+                        (float)Math.Round(y * boardPixels / size + position.Y)));  //set inital position
+                    if (x != 0)
+                    {
+                        if (pieces[x, y].GetPosition().X > pieces[x - 1, y].GetPosition().X + pieces[x - 1, y].GetRect().Width)
+                        {
+                            pieces[x, y].SetPosition(new Vector2(pieces[x - 1, y].GetPosition().X + pieces[x - 1, y].GetRect().Width,
+                                pieces[x, y].GetPosition().Y));
+                        }
+                    }
+                    if (y != 0)
+                    {
+                        if (pieces[x, y].GetPosition().Y > pieces[x, y - 1].GetPosition().Y + pieces[x, y - 1].GetRect().Height)
+                        {
+                            pieces[x, y].SetPosition(new Vector2(pieces[x, y].GetPosition().X,
+                                pieces[x, y - 1].GetPosition().Y + pieces[x, y - 1].GetRect().Height));
+                        }
+                    }
                 }
             }
 
@@ -634,7 +650,7 @@ namespace TileGame
 
         private int SizeMinus()
         {
-            if (board.size > 2)
+            if (board.size < 2)
                 return 0; //early exit
             //regen smaller board
             board = new Board(new Vector2(25, 25), board.size - 1, board.loadedAtlas, _graphics.GraphicsDevice);
@@ -643,6 +659,8 @@ namespace TileGame
 
         private int SizePlus()
         {
+            if (board.size > 7)
+                return 0; //early exit
             //regen larger board
             board = new Board(new Vector2(25, 25), board.size + 1, board.loadedAtlas, _graphics.GraphicsDevice);
             return 0; //..

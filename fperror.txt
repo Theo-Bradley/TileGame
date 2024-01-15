@@ -1,0 +1,2 @@
+monogame uses floating points so theres a rounding error with certain board sizes.
+This is fixed by ln301-314inc and ln660-661inc
