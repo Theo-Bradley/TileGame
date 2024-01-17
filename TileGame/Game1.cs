@@ -624,10 +624,13 @@ namespace TileGame
         private Texture2D img;
         private Texture2D sMinus;
         private Texture2D sPlus;
+        private Texture2D trophy;
         private Board board;
         private int indexX = 0, indexY = 0;
         private Vector2 piecePos;
         private bool wasDown = false;
+        private bool wasCorrect = true;
+        private bool trophyRender = false;
         private bool usingCustomAtlas = false;
         private int bin = 0; //used to hold discarded arguments
         private byte arrowKeysFlag = 0b00000000; //holds which arrow keys were pressed on the last frame
@@ -644,7 +647,8 @@ namespace TileGame
         }
         private int ScrambleBoard()
         {
-            board.Scramble(1000000); //scramble board
+            board.Scramble(10); //scramble board
+            wasCorrect = false;
             return 0; //ignore this
         }
 
@@ -654,6 +658,7 @@ namespace TileGame
                 return 0; //early exit
             //regen smaller board
             board = new Board(new Vector2(25, 25), board.size - 1, board.loadedAtlas, _graphics.GraphicsDevice);
+            wasCorrect = true;
             return 0; //..
         }
 
@@ -663,6 +668,7 @@ namespace TileGame
                 return 0; //early exit
             //regen larger board
             board = new Board(new Vector2(25, 25), board.size + 1, board.loadedAtlas, _graphics.GraphicsDevice);
+            wasCorrect = true;
             return 0; //..
         }
 
@@ -691,6 +697,7 @@ namespace TileGame
             img = Content.Load<Texture2D>("image(1)");
             sMinus = Content.Load<Texture2D>("minus");
             sPlus = Content.Load<Texture2D>("plus");
+            trophy = Content.Load<Texture2D>("trophy");
             customAtlas = Texture2D.FromFile(_graphics.GraphicsDevice,
                 Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "/Content/customAtlas.png"); //load custom atlas
         }
@@ -736,8 +743,6 @@ namespace TileGame
             MouseState mState = Mouse.GetState(); //get mouse state
             mousePos.X = mState.Position.X; //update mouse position
             mousePos.Y = mState.Position.Y; //..
-
-            Window.Title = board.IsCorrect().ToString();
 
             if (mState.LeftButton == ButtonState.Pressed) //if clicking and clicking a piece
             {
@@ -833,6 +838,15 @@ namespace TileGame
             if (Keyboard.GetState().IsKeyUp(Keys.Down))
                 arrowKeysFlag &= 0b11111110; //..
 
+            if (board.IsCorrect() && !wasCorrect)
+            {
+                trophyRender = true;
+                wasCorrect = true;
+            }
+
+            if (!board.IsCorrect())
+                trophyRender = false;
+
             base.Update(gameTime);
             deltaTime = (float) gameTime.ElapsedGameTime.TotalSeconds; //calculate delta time in seconds
         }
@@ -848,6 +862,8 @@ namespace TileGame
             imageButton.Draw(ref _spriteBatch); //..
             sizeMinusButton.Draw(ref _spriteBatch); //..
             sizePlusButton.Draw(ref _spriteBatch); //..
+            if (trophyRender)
+                _spriteBatch.Draw(trophy, new Rectangle(300, 50, 198, 292), Color.White);
             _spriteBatch.End();
 
             base.Draw(gameTime);
