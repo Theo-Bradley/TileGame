@@ -23,7 +23,7 @@ namespace TileGame
     public class _constants
     {
         public const int screenWidth = 1100;
-        public const int screenHeight = 1000;
+        public const int screenHeight = 800 + 50;
         public const float PI = 3.14159f;
     }
 
@@ -360,18 +360,18 @@ namespace TileGame
 
         public bool IsCorrect()
         {
-            bool wrong = false;
+            bool correct = false;
             for (int x = 0; x < size; x++)
             {
                 for (int y = 0; y < size; y++)
                 {
                     if (pieces[x,y].correctPos.X == x && pieces[x,y].correctPos.Y == y)
-                        wrong = true;
+                        correct = true;
                     else
-                        wrong = false;
+                        return false;
                 }
             }
-            return wrong;
+            return correct;
         }
 
         public bool Click(Vector2 clickPos, ref int indexX, ref int indexY)
@@ -684,7 +684,7 @@ namespace TileGame
                 board = new Board(new Vector2(25, 25), board.size, customAtlas, _graphics.GraphicsDevice); //regenrate board with atlas
                 usingCustomAtlas = true;
             }
-
+            wasCorrect = true;
             return 0;
         }
 
