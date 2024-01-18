@@ -647,7 +647,7 @@ namespace TileGame
         }
         private int ScrambleBoard()
         {
-            board.Scramble(10); //scramble board
+            board.Scramble(1000000); //scramble board
             wasCorrect = false;
             return 0; //ignore this
         }
